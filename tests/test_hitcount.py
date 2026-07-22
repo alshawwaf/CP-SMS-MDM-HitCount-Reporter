@@ -103,9 +103,15 @@ check("disabled rule flagged",
 
 today = datetime.date.today()
 expect_from = today - datetime.timedelta(days=hc.WINDOW_DAYS)
-check("default window sent to API (from = today-182d, to = today)",
-      all(x["from"] == expect_from.isoformat() and x["to"] == today.isoformat()
+expect_to_api = today + datetime.timedelta(days=1)   # to-date is exclusive of its day
+check("default window sent to API (from = today-182d, to = today+1d inclusive)",
+      all(x["from"] == expect_from.isoformat()
+          and x["to"] == expect_to_api.isoformat()
           for x in CAPTURED), str(CAPTURED[:1]))
+_, out_default, _ = run([])
+check("display shows the user's end date (today), not the +1 API value",
+      today.isoformat() in out_default
+      and expect_to_api.isoformat() not in out_default)
 
 c, recs = runj(["--zero-only"])
 check("--zero-only: exactly the 2 unused rules", c == 0 and len(recs) == 2
@@ -127,8 +133,9 @@ c, recs = runj(["--layer", "France"])
 check("--layer substring filter", c == 0 and len(recs) == 5)
 
 c, recs = runj(["--from", "2026-01-01", "--to", "2026-03-31"])
-check("explicit window forwarded", CAPTURED
-      and CAPTURED[0]["from"] == "2026-01-01" and CAPTURED[0]["to"] == "2026-03-31")
+check("explicit window forwarded (to-date + 1 day, inclusive of Mar 31)",
+      CAPTURED and CAPTURED[0]["from"] == "2026-01-01"
+      and CAPTURED[0]["to"] == "2026-04-01")
 
 c, recs = runj(["--target", "fw-paris"])
 check("--target forwarded to hits-settings",
@@ -161,6 +168,8 @@ check("obj_name: uid string passthrough", hc.obj_name("abc-uid") == "abc-uid")
 f, t = hc.default_window(datetime.date(2026, 7, 22))
 check("default_window math", f == datetime.date(2026, 1, 21)
       and t == datetime.date(2026, 7, 22))
+check("api_to_date adds one day", hc.api_to_date(datetime.date(2026, 7, 22))
+      == "2026-07-23")
 ctx = hc.make_ssl_context("10.0.0.1", False, False)
 check("remote TLS verification enforced by default",
       ctx.verify_mode == ssl.CERT_REQUIRED)

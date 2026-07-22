@@ -323,6 +323,15 @@ def default_window(today=None):
     return from_d, to_d
 
 
+def api_to_date(to_date):
+    """The management API treats a hits-settings to-date as the START of that
+    day, so a plain end date excludes that day's own hits (e.g. a default
+    window ending 'today' would hide everything that happened today). Send the
+    following day to the API so the window is inclusive of the user's end date.
+    The user-facing output still shows the original end date."""
+    return (to_date + datetime.timedelta(days=1)).isoformat()
+
+
 def parse_args(argv):
     p = argparse.ArgumentParser(
         description="Report per-rule Access Policy hit counts across all "
@@ -389,7 +398,8 @@ def parse_args(argv):
 def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
     hits_from = args.from_date.isoformat()
-    hits_to = args.to_date.isoformat()
+    hits_to = args.to_date.isoformat()          # for display
+    hits_to_api = api_to_date(args.to_date)     # inclusive of the end day
 
     sess = Session(args)
     sid0 = sess.login()
@@ -423,8 +433,8 @@ def main(argv=None):
                 layers = [l for l in layers if args.layer.lower() in l.lower()]
             for layer in layers:
                 try:
-                    items = fetch_rulebase(sess, sid, layer, hits_from, hits_to,
-                                           args.target)
+                    items = fetch_rulebase(sess, sid, layer, hits_from,
+                                           hits_to_api, args.target)
                 except ApiError as exc:
                     print("! %s / %s: %s" % (label, layer, exc), file=sys.stderr)
                     continue

@@ -46,8 +46,9 @@ import datetime, json, sys
 lines = [json.loads(l) for l in open(sys.argv[1]) if l.strip()]
 today = datetime.date.today()
 exp_from = today - datetime.timedelta(days=182)
+exp_to = today + datetime.timedelta(days=1)   # to-date is exclusive of its day
 ok = bool(lines) and all(
-    x["to"] == today.isoformat() and x["from"] == exp_from.isoformat()
+    x["to"] == exp_to.isoformat() and x["from"] == exp_from.isoformat()
     for x in lines)
 sys.exit(0 if ok else 1)
 PYEOF

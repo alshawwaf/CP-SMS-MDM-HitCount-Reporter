@@ -106,6 +106,12 @@ if [ "$ZERO_ONLY" = 1 ] && [ -n "$MIN_HITS" ]; then
     exit 1
 fi
 
+# The API treats hits-settings to-date as the START of that day, so a plain
+# end date hides that day's own hits. Send the next day so the window is
+# inclusive of $TO (incl. today by default); $TO is still what we display.
+TO_API="$(date -d "$TO +1 day" +%F 2>/dev/null || date -v+1d -j -f "%Y-%m-%d" "$TO" +%F 2>/dev/null)"
+[ -z "$TO_API" ] && { echo "ERROR: could not compute to-date+1 from '$TO'." >&2; exit 1; }
+
 # prompt for the password once if needed
 if [ "$MODE" = "user" ] && [ -z "$PASSWORD" ]; then
     PASSWORD="${MGMT_CLI_PASSWORD:-}"
@@ -212,7 +218,7 @@ search_domain() {  # $1 = domain ("" for SMS/local), $2 = record label
         fi
         off=0
         while :; do
-            local cmd="mgmt show access-rulebase name \"$(esc "$layer")\" show-hits true hits-settings.from-date \"$FROM\" hits-settings.to-date \"$TO\""
+            local cmd="mgmt show access-rulebase name \"$(esc "$layer")\" show-hits true hits-settings.from-date \"$FROM\" hits-settings.to-date \"$TO_API\""
             [ -n "$TARGET" ] && cmd="$cmd hits-settings.target \"$(esc "$TARGET")\""
             cmd="$cmd use-object-dictionary false details-level standard limit 100 offset $off --format json"
             page="$(clish_api "$d" "$cmd")"

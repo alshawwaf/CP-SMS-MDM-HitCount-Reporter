@@ -240,7 +240,9 @@ def main(argv=None):
             print("Error: domain '%s' not found." % args.domain, file=sys.stderr)
             return 1
 
-    hits_settings = {"from-date": hits_from, "to-date": hits_to}
+    # to-date is exclusive of its own day in the API - send the next day so
+    # the window includes the user's end date (see core.api_to_date)
+    hits_settings = {"from-date": hits_from, "to-date": core.api_to_date(args.to_date)}
     if args.target:
         hits_settings["target"] = args.target
 
