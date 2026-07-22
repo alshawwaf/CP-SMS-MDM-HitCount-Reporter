@@ -318,69 +318,96 @@ detected as unsupported on R82.10 clish — use `--user`.
 ./clish/hitcount_clish.sh --user admin --from 2026-01-01 --domain CMA-EMEA --json
 ```
 
-### Clish-only? The copy-paste query pack — no expert access needed
+### Clish-only? The copy-paste hit report — no expert mode, no files
 
-Corporate policy limits you to clish, so you can't copy files or run scripts?
-You can still get every hit count: the `mgmt` commands work interactively
-inside clish, and **multi-line pastes execute in order** (verified on
-R82.10). Two mechanics make or break it:
+Locked to clish by corporate policy, so you can't copy files or run scripts?
+You can still get the full multi-domain hit report with **three pastes** —
+each one covers *all* your domains in a single go. Verified end to end on a
+live R82.10 Multi-Domain server, producing the exact same numbers as the
+scripts in this repository.
 
-1. **Disable the pager first** (`set clienv rows 0`), or long rulebase output
-   freezes the session waiting for a keypress.
-2. **The password prompt discards everything pasted after it** — so paste in
-   two stages, typing the password by hand in between.
+**Prepare once, in a text editor:** copy the three blocks below and replace
+`YOUR-ADMIN`, `YOUR-PASSWORD`, and later your domain/layer names. Because the
+password is written inline, no prompt interrupts the paste — that is what
+makes one-paste-does-everything possible. The trade-off: the password shows
+on screen and in the clish history, so use a **read-only administrator**
+created just for this, and see the password-safe alternative below if that's
+still not acceptable.
 
-**One-time — list your domains** (paste line 1, type your password, then the
-rest):
+**Paste 1 — which domains exist?**
 
 ```
-mgmt login user admin
+set clienv rows 0
+mgmt login user YOUR-ADMIN password "YOUR-PASSWORD"
 mgmt show domains limit 500
 mgmt logout
 ```
 
-**Per domain — Stage 1:** paste, then type your password at the prompt:
+The `name:` lines are your domains (e.g. `CMA-EMEA`, `CMA-US`). The first
+line disables clish's output pager — without it, long output freezes the
+session waiting for a keypress.
+
+**Paste 2 — which policy layers exist in each domain?** Duplicate this
+three-line block once per domain from Paste 1:
 
 ```
-set clienv rows 0
-mgmt login user admin domain "CMA-EMEA"
-```
-
-**Per domain — Stage 2:** when the prompt returns, paste the queries:
-
-```
+mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
 mgmt show access-layers limit 100
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" use-object-dictionary false details-level standard limit 100 offset 0
+mgmt logout
+mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-US"
+mgmt show access-layers limit 100
 mgmt logout
 ```
 
-How to read and adapt it:
+Note each layer's `name:` (typically `"<package> Network"`).
 
-- **Dates:** the API's `to-date` excludes its own day — to include today,
-  write **tomorrow's date** (the packaged scripts handle this automatically;
-  by hand you must do it yourself).
-- Take the layer name (`"Standard_EMEA Network"` above) from the
-  `access-layers` output in the same session.
-- Each rule block prints `name:`, `rule-number:`, `enabled:` and a `hits:`
-  block with `value:` and `level:` — `level: "zero"` marks your cleanup
-  candidates. `use-object-dictionary false` makes the output long but
-  self-describing (real object names instead of internal ids).
-- More rules than `limit`? Re-run the same command with `offset 100`,
-  `offset 200`, and so on.
-- Repeat Stages 1–2 for each domain from your domain list.
+**Paste 3 — the hit report.** Duplicate per domain, filling in its layer
+name. Set the dates to your window — and write **tomorrow's date** as the
+end date, because the API excludes the end date's own day (the scripts in
+this repo handle that automatically; by hand you must):
+
+```
+mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt logout
+mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-US"
+mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt logout
+```
+
+**Reading the result:** every rule prints a block with its `name:`,
+`rule-number:`, `enabled:` and a `hits:` section:
+
+```
+    name: "Allow-Ping"
+    rule-number: 5
+    hits:
+      level: "medium"
+      value: 345
+```
+
+`value: 0` / `level: "zero"` = your cleanup candidates. More rules than
+`limit 100`? Re-run the same command with `offset 100`, then `offset 200`,
+and so on.
 
 <details>
-<summary>Prefer one single paste per domain? (password visible on screen)</summary>
+<summary>Password-safe alternative (nothing on screen, one domain at a time)</summary>
 
-Putting the password inline avoids the prompt, so a single block pastes
-cleanly end to end — at the cost of the password appearing on your screen
-and in the clish command history. Acceptable in a lab; think twice in
-production:
+Remove `password "..."` from the login lines and clish prompts for the
+password instead. One catch, verified in testing: **the password prompt
+discards everything pasted after it** — so in this mode you must paste in
+two stages per domain: first the login line alone, type the password, then
+paste the query lines once the prompt returns:
 
 ```
 set clienv rows 0
-mgmt login user admin password "YOUR-PASSWORD" domain "CMA-EMEA"
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" use-object-dictionary false details-level standard limit 100 offset 0
+mgmt login user YOUR-ADMIN domain "CMA-EMEA"
+```
+
+*(type your password, wait for the prompt)*
+
+```
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
 mgmt logout
 ```
 
