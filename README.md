@@ -372,6 +372,37 @@ First run and don't know the layer names yet? Run the block with just the
 `"<package> Network"`), add the `access-rulebase` lines, and paste again —
 after that, this one paste is your whole recurring report.
 
+**Too busy? Get a clean summary table instead.** The raw rulebase output is
+verbose and clish cannot filter it — but your *laptop* can, while the server
+side stays exactly the same (no expert mode, no files on the server). Save
+Paste 2 to a file — with `set clienv rows 0` as the first line and `exit` as
+the last — e.g. `hitreport.txt`, then run it over SSH and filter locally.
+
+macOS / Linux:
+
+```bash
+ssh -tt admin@<MDM-IP> < hitreport.txt | awk '/name: "/{p=c; c=$0} /level: "/{l=$0} / value: /{gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c); gsub(/.*level: "|".*$/,"",l); printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
+```
+
+which prints (verified against a live R82.10 Multi-Domain server):
+
+```
+CMA-US     Allow-Ping                          345  medium
+CMA-US     Block-Telnet                        110  low
+CMA-US     Allow-NTP                             0  zero
+...one line per rule, every domain...
+```
+
+Windows: `ssh -tt admin@<MDM-IP> "" < hitreport.txt > report.txt`, then open
+`report.txt` in your editor and search for `value:` — or run the awk
+one-liner above from Git Bash or WSL.
+
+Two notes: `-tt` matters (clish ignores input without a terminal), and the
+account must be a **Gaia admin-class user** — the standard `admin` account
+works even when restricted to clish, but custom low-privilege Gaia users
+cannot run `mgmt` commands at all (the platform limits the underlying
+binary; you'd see `MGMT9163 Cannot run login cmd`).
+
 **Reading the result:** every rule prints a block with its `name:`,
 `rule-number:`, `enabled:` and a `hits:` section:
 
