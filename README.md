@@ -318,27 +318,73 @@ detected as unsupported on R82.10 clish — use `--user`.
 ./clish/hitcount_clish.sh --user admin --from 2026-01-01 --domain CMA-EMEA --json
 ```
 
-### Clish-only? The guided lookup — no expert access, no API knowledge
+### Clish-only? The copy-paste query pack — no expert access needed
 
-`show access-rulebase` works interactively inside clish too. Three blocks,
-typed at the clish prompt:
+Corporate policy limits you to clish, so you can't copy files or run scripts?
+You can still get every hit count: the `mgmt` commands work interactively
+inside clish, and **multi-line pastes execute in order** (verified on
+R82.10). Two mechanics make or break it:
+
+1. **Disable the pager first** (`set clienv rows 0`), or long rulebase output
+   freezes the session waiting for a keypress.
+2. **The password prompt discards everything pasted after it** — so paste in
+   two stages, typing the password by hand in between.
+
+**One-time — list your domains** (paste line 1, type your password, then the
+rest):
 
 ```
 mgmt login user admin
-mgmt show domains
+mgmt show domains limit 500
 mgmt logout
 ```
 
+**Per domain — Stage 1:** paste, then type your password at the prompt:
+
 ```
+set clienv rows 0
 mgmt login user admin domain "CMA-EMEA"
-mgmt show access-layers
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-01" hits-settings.to-date "2026-07-22"
+```
+
+**Per domain — Stage 2:** when the prompt returns, paste the queries:
+
+```
+mgmt show access-layers limit 100
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" use-object-dictionary false details-level standard limit 100 offset 0
 mgmt logout
 ```
 
-Every rule prints with its `hits:` block (`value`, `level`, first/last date).
-Repeat the second block per domain. Rules with `value: 0` are your cleanup
-candidates.
+How to read and adapt it:
+
+- **Dates:** the API's `to-date` excludes its own day — to include today,
+  write **tomorrow's date** (the packaged scripts handle this automatically;
+  by hand you must do it yourself).
+- Take the layer name (`"Standard_EMEA Network"` above) from the
+  `access-layers` output in the same session.
+- Each rule block prints `name:`, `rule-number:`, `enabled:` and a `hits:`
+  block with `value:` and `level:` — `level: "zero"` marks your cleanup
+  candidates. `use-object-dictionary false` makes the output long but
+  self-describing (real object names instead of internal ids).
+- More rules than `limit`? Re-run the same command with `offset 100`,
+  `offset 200`, and so on.
+- Repeat Stages 1–2 for each domain from your domain list.
+
+<details>
+<summary>Prefer one single paste per domain? (password visible on screen)</summary>
+
+Putting the password inline avoids the prompt, so a single block pastes
+cleanly end to end — at the cost of the password appearing on your screen
+and in the clish command history. Acceptable in a lab; think twice in
+production:
+
+```
+set clienv rows 0
+mgmt login user admin password "YOUR-PASSWORD" domain "CMA-EMEA"
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" use-object-dictionary false details-level standard limit 100 offset 0
+mgmt logout
+```
+
+</details>
 
 <details>
 <summary>API calls under the hood (clish batch files)</summary>
