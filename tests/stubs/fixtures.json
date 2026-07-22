@@ -1,0 +1,45 @@
+{
+  "domains": ["CMA-France", "CMA-UK"],
+  "layers": {
+    "CMA-France": ["Standard_France Network"],
+    "CMA-UK": ["Standard_UK Network"]
+  },
+  "rulebase": {
+    "Standard_France Network": [
+      { "type": "access-section", "name": "Management", "rulebase": [
+          { "type": "access-rule", "rule-number": 1, "name": "Allow-Mgmt-SSH",
+            "action": { "name": "Accept" }, "enabled": true,
+            "hits": { "value": 42, "level": "low", "percentage": "0.3%",
+                      "first-date": { "iso-8601": "2026-02-01T09:00-0500" },
+                      "last-date":  { "iso-8601": "2026-07-20T18:22-0400" } } }
+      ] },
+      { "type": "access-rule", "rule-number": 2, "name": "Allow-DNS",
+        "action": { "name": "Accept" }, "enabled": true,
+        "hits": { "value": 12345, "level": "very high", "percentage": "87%",
+                  "first-date": { "iso-8601": "2026-01-25T00:11-0500" },
+                  "last-date":  { "iso-8601": "2026-07-21T23:59-0400" } } },
+      { "type": "access-rule", "rule-number": 3, "name": "Allow-Web-HTTP",
+        "action": { "name": "Accept" }, "enabled": true,
+        "hits": { "value": 987, "level": "medium", "percentage": "7%",
+                  "first-date": { "iso-8601": "2026-03-11T10:00-0400" },
+                  "last-date":  { "iso-8601": "2026-07-19T14:45-0400" } } },
+      { "type": "access-rule", "rule-number": 4, "name": "Block-Telnet",
+        "action": { "name": "Drop" }, "enabled": true,
+        "hits": { "value": 0, "level": "zero" } },
+      { "type": "access-rule", "rule-number": 5, "name": "Cleanup rule",
+        "action": { "name": "Drop" }, "enabled": true,
+        "hits": { "value": 7, "level": "low",
+                  "last-date": { "iso-8601": "2026-07-01T12:00-0400" } } }
+    ],
+    "Standard_UK Network": [
+      { "type": "access-rule", "rule-number": 1, "name": "Allow-DNS",
+        "action": { "name": "Accept" }, "enabled": true,
+        "hits": { "value": 555, "level": "medium", "percentage": "12%",
+                  "first-date": { "iso-8601": "2026-02-14T08:30-0500" },
+                  "last-date":  { "iso-8601": "2026-06-30T08:00-0400" } } },
+      { "type": "access-rule", "rule-number": 2, "name": "Block-SMTP",
+        "action": { "name": "Drop" }, "enabled": false,
+        "hits": { "value": 0, "level": "zero" } }
+    ]
+  }
+}

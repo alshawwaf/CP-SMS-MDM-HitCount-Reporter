@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+# written by the SDK version on first connect (per-user trust store)
+fingerprints.txt
+.claude/
+tests/.capture.jsonl
