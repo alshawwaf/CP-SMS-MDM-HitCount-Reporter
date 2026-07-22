@@ -17,6 +17,10 @@ domains at once.
 with `--from` / `--to`, and narrow the counters to one enforcing firewall with
 `--target`.
 
+> [!NOTE]
+> **Read-only by design.** Every version of this tool only *asks* the
+> Management API questions — it never modifies objects, rules, or policies.
+
 Four interchangeable implementations, same output everywhere:
 
 | # | Version | Path | Transport | Best for |
@@ -255,12 +259,17 @@ Auth flags: `--local` (default, uses `mgmt_cli login -r true`), `--api-key KEY`,
 **TLS:** verified by default; auto-skipped only for loopback. Remote
 self-signed: `--ca-file <pem>` (preferred) or `--insecure` (last resort).
 
-<details>
-<summary>API calls under the hood (raw Web API)</summary>
+<details open>
+<summary><b>API calls under the hood (raw Web API)</b></summary>
 
-```
-POST /web_api/login                    {"api-key": "..."}                     # then per domain:
-POST /web_api/login                    {"api-key": "...", "domain": "<CMA>"}
+Every request is an HTTPS `POST` with a JSON body. The first `login` returns
+a session token (`sid`) that rides in the `X-chkp-sid` header of every
+following request — one token per domain, because a session is scoped to the
+domain it logged in to:
+
+```http
+POST /web_api/login                    {"api-key": "..."}                     # System Data first,
+POST /web_api/login                    {"api-key": "...", "domain": "<CMA>"}  # then once per domain
 POST /web_api/show-access-layers       {"details-level": "standard", "limit": 100, "offset": 0}
 POST /web_api/show-access-rulebase     {"name": "<layer>", "show-hits": true,
                                         "hits-settings": {"from-date": "2026-01-21",
@@ -268,14 +277,30 @@ POST /web_api/show-access-rulebase     {"name": "<layer>", "show-hits": true,
                                                           "target": "<fw>"},
                                         "use-object-dictionary": false,
                                         "limit": 100, "offset": 0}
-# to-date is the user's end date + 1 day: the API treats it as the START of
-# that day, so +1 makes the window inclusive (display still shows 2026-07-22)
 POST /web_api/logout                   {}
 ```
 
-Each rule returns a `hits` object: `value`, `level` (zero/low/medium/high/very
-high), `percentage`, `first-date`, `last-date`. Pagination repeats with
-`offset = to` until `to >= total`; sections are flattened client-side.
+> [!IMPORTANT]
+> The `to-date` sent to the API is the user's end date **+ 1 day**: the API
+> treats `to-date` as the *start* of that day, so the +1 makes the window
+> inclusive. The tool still displays the user's own end date.
+
+Each rule in the response carries a `hits` object — the payload this whole
+tool exists for:
+
+```json
+"hits": {"value": 345, "level": "medium", "percentage": "12%",
+         "first-date": {"iso-8601": "2026-07-22T15:02-0400"},
+         "last-date":  {"iso-8601": "2026-07-22T15:27-0400"}}
+```
+
+`level` is the server's own classification (zero / low / medium / high /
+very high) relative to the layer's other rules. Responses are paginated: the
+tool repeats the call with `offset = to` until `to >= total`, and flattens
+rules out of their `access-section` containers client-side. Two container
+quirks the code handles for you: `show-access-layers` returns its list under
+the key `access-layers` (not the usual `objects`), and disabled rules must be
+read as `enabled: false` rather than assumed on.
 
 </details>
 
@@ -292,8 +317,14 @@ Run in **expert** mode on the MDS.
 With `--user`, the password is prompted for (or read from `MGMT_CLI_PASSWORD`)
 and handed to `mgmt_cli` via the environment — never on a command line.
 
-<details>
-<summary>API calls under the hood (mgmt_cli)</summary>
+<details open>
+<summary><b>API calls under the hood (mgmt_cli)</b></summary>
+
+`mgmt_cli` is the same Web API spoken through Check Point's bundled binary —
+`login -r true` is the "I'm already root on the management server" shortcut
+that makes the credential-free on-box experience possible. One session id is
+opened per domain and **reused for all of that domain's queries** (that's
+what `--session-id` does), then released:
 
 ```bash
 mgmt_cli login -r true domain "<CMA>" --format json           # → sid, one per domain
@@ -305,6 +336,10 @@ mgmt_cli show access-rulebase name "<layer>" show-hits true \
 # to-date = end date + 1 day (the API excludes the end date's own day)
 mgmt_cli logout --session-id <SID>
 ```
+
+The JSON responses are byte-identical to the raw Web API above; the script
+parses them with Gaia's bundled `jq`, flattens sections, applies your
+filters, and renders the table.
 
 </details>
 
@@ -330,13 +365,15 @@ each one covers *all* your domains in a single go. Verified end to end on a
 live R82.10 Multi-Domain server, producing the exact same numbers as the
 scripts in this repository.
 
-**Prepare once, in a text editor:** copy the three blocks below and replace
+**Prepare once, in a text editor:** copy the blocks below and replace
 `YOUR-ADMIN`, `YOUR-PASSWORD`, and later your domain/layer names. Because the
 password is written inline, no prompt interrupts the paste — that is what
-makes one-paste-does-everything possible. The trade-off: the password shows
-on screen and in the clish history, so use a **read-only administrator**
-created just for this, and see the password-safe alternative below if that's
-still not acceptable.
+makes one-paste-does-everything possible.
+
+> [!WARNING]
+> The inline password shows on screen and in the clish command history. Use
+> a **read-only administrator** created just for this, and see the
+> password-safe alternative below if that's still not acceptable.
 
 **Paste 1 — which domains exist?**
 
@@ -355,10 +392,12 @@ session waiting for a keypress.
 minimum: every domain is an isolated management server, so a session covers
 exactly one of them) — but everything for that domain happens inside the same
 session: list its layers, then pull each layer's rulebase with hits.
-Duplicate the block per domain from Paste 1. Set the dates to your window —
-and write **tomorrow's date** as the end date, because the API excludes the
-end date's own day (the scripts in this repo handle that automatically; by
-hand you must):
+Duplicate the block per domain from Paste 1, and set the dates to your window.
+
+> [!IMPORTANT]
+> Write **tomorrow's date** as the end date — the API excludes the end
+> date's own day. (The scripts in this repository correct this for you
+> automatically; when querying by hand you must do it yourself.)
 
 ```
 mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
@@ -402,11 +441,12 @@ Windows (PowerShell — note it has no `<` redirection):
 `report.txt` in your editor and search for `value:` — or run the awk
 one-liner above unchanged from Git Bash or WSL.
 
-Two notes: `-tt` matters (clish ignores input without a terminal), and the
-account must be a **Gaia admin-class user** — the standard `admin` account
-works even when restricted to clish, but custom low-privilege Gaia users
-cannot run `mgmt` commands at all (the platform limits the underlying
-binary; you'd see `MGMT9163 Cannot run login cmd`).
+> [!IMPORTANT]
+> Two things make or break this: `-tt` matters (clish ignores input without
+> a terminal), and the account must be a **Gaia admin-class user** — the
+> standard `admin` account works even when restricted to clish, but custom
+> low-privilege Gaia users cannot run `mgmt` commands at all (the platform
+> limits the underlying binary; you'd see `MGMT9163 Cannot run login cmd`).
 
 <details>
 <summary><b>One-box version — everything in a single paste from your workstation</b></summary>
@@ -460,7 +500,7 @@ form — for the tidy table, use the one-box workstation version above.
 **Reading the result:** every rule prints a block with its `name:`,
 `rule-number:`, `enabled:` and a `hits:` section:
 
-```
+```yaml
     name: "Allow-Ping"
     rule-number: 5
     hits:
@@ -495,19 +535,28 @@ mgmt logout
 
 </details>
 
-<details>
-<summary>API calls under the hood (clish batch files)</summary>
+<details open>
+<summary><b>API calls under the hood (clish batch files)</b></summary>
 
-Each API call is one `clish -i -f <tempfile>` run containing:
+Verified R82.10 behavior drives this design: a clish `mgmt` session dies with
+its clish process, piped stdin is ignored, and only `-c <cmd>` or
+`-i -f <file>` execute. So each API call becomes one `clish -i -f <tempfile>`
+run — a private 0600 temp file, deleted immediately after — containing
+login → query → logout (`-i` means "continue past errors", which guarantees
+the logout always runs):
 
-```
+```text
 mgmt login user "<name>" password "<password>" domain "<CMA>"
 mgmt show access-rulebase name "<layer>" show-hits true hits-settings.from-date "..." hits-settings.to-date "..." use-object-dictionary false details-level standard limit 100 offset 0 --format json
 mgmt logout
 ```
 
-The tool strips clish's `Processing line N out of M` noise, extracts the
-first balanced JSON document, and paginates by rewriting the batch file.
+clish glues progress noise directly onto the output — literally
+`Processing line 2 out of 3 {` with the JSON starting mid-line — so the tool
+strips that pattern, extracts the first brace-balanced JSON document, and
+paginates by rewriting the batch file with the next `offset`. Credentials
+travel inside the temp file, never on a command line, so they don't appear
+in the process list.
 
 </details>
 
@@ -544,20 +593,34 @@ API*, then `api restart`).
 
 </details>
 
-<details>
-<summary>API calls under the hood (cpapi)</summary>
+<details open>
+<summary><b>API calls under the hood (cpapi)</b></summary>
+
+The official SDK wraps the same Web API with three conveniences this tool
+leans on: `api_query()` auto-paginates (it merges every `rulebase` page for
+you), `check_fingerprint()` pins the server's TLS certificate, and a client
+can be constructed directly from a **cached session id** — which is how
+repeat runs perform zero logins:
 
 ```python
 client = APIClient(APIClientArgs(server=..., port=..., sid=<cached sid>))
-client.check_fingerprint()
-client.api_call("show-session")                                # cached-session probe
-client.login_with_api_key(key, domain="<CMA>", read_only=True) # only when needed
-client.api_query("show-access-layers")
+client.check_fingerprint()                                     # TLS pinning
+client.api_call("show-session")                                # is the cached session alive?
+client.login_with_api_key(key, domain="<CMA>", read_only=True) # only if it wasn't
+client.api_query("show-access-layers")                         # auto-pagination
 client.api_query("show-access-rulebase", container_key="rulebase",
                  payload={"name": layer, "show-hits": True,
                           "hits-settings": {"from-date": ..., "to-date": ..., "target": ...},
                           "use-object-dictionary": False})
+# no logout by default: the sid is cached (0600 file) and reused next run;
+# --logout sends api_call("logout") and clears the cache
 ```
+
+Sessions are opened **read-only**, so lingering ones hold no locks and simply
+expire on the server (~10 minutes idle). If a login burst still trips the
+server's rate limiter (`err_too_many_requests`), the tool backs off and
+retries automatically. Flattening, filtering, and rendering are shared with
+the Python version — the SDK file imports it — so output is identical.
 
 </details>
 
@@ -666,10 +729,3 @@ first-hit date) as a JSON array for further processing.
   swept automatically.
 - Exit codes: `0` = rules reported, `2` = nothing matched, `1` = error.
 
----
-
-## License
-
-[Apache-2.0](LICENSE). The SDK version depends on Check Point's official
-[cp_mgmt_api_python_sdk](https://github.com/CheckPointSW/cp_mgmt_api_python_sdk)
-(also Apache-2.0).
