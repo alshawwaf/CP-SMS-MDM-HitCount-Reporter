@@ -46,6 +46,22 @@ out of their sections.
 Prefer a file you can print or attach? The same diagram is available as
 [PDF](docs/architecture.pdf).
 
+## Example output
+
+```
+DOMAIN(CMA)  LAYER                    NO  RULE                    ACTION  HITS   LEVEL      LAST HIT
+-----------  -----------------------  --  ----------------------  ------  -----  ---------  ----------
+CMA-EMEA     Standard_EMEA Network    1   Allow-Mgmt-SSH          Accept  42     low        2026-07-20
+CMA-EMEA     Standard_EMEA Network    2   Allow-DNS               Accept  12345  very high  2026-07-21
+CMA-EMEA     Standard_EMEA Network    6   Block-Telnet            Drop    0      zero       -
+CMA-US       Standard_US Network      2   Block-SMTP  (disabled)  Drop    0      zero       -
+
+4 rules shown (2 zero-hit) across 2 domain(s) | window: 2026-01-21 .. 2026-07-22
+```
+
+`--json` returns the same records (plus section, uid, percentage and
+first-hit date) as a JSON array for further processing.
+
 ---
 
 ## New to Check Point? Start here
@@ -711,23 +727,6 @@ on-MDS smoke test.
 
 ---
 
-## Example output
-
-```
-DOMAIN(CMA)  LAYER                    NO  RULE                    ACTION  HITS   LEVEL      LAST HIT
------------  -----------------------  --  ----------------------  ------  -----  ---------  ----------
-CMA-EMEA     Standard_EMEA Network    1   Allow-Mgmt-SSH          Accept  42     low        2026-07-20
-CMA-EMEA     Standard_EMEA Network    2   Allow-DNS               Accept  12345  very high  2026-07-21
-CMA-EMEA     Standard_EMEA Network    6   Block-Telnet            Drop    0      zero       -
-CMA-US       Standard_US Network      2   Block-SMTP  (disabled)  Drop    0      zero       -
-
-4 rules shown (2 zero-hit) across 2 domain(s) | window: 2026-01-21 .. 2026-07-22
-```
-
-`--json` returns the same records (plus section, uid, percentage and
-first-hit date) as a JSON array for further processing.
-
----
 
 ## Notes & caveats
 
