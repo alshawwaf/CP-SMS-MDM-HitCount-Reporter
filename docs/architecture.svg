@@ -10,7 +10,7 @@
 
   <rect x="0" y="0" width="1400" height="950" fill="#f8fafc"/>
 
-  <text x="700" y="38" text-anchor="middle" font-size="23" font-weight="bold" fill="#0f172a">MDM CMA HitCount Reporter — How One Command Reaches the Management Web API</text>
+  <text x="700" y="38" text-anchor="middle" font-size="23" font-weight="bold" fill="#0f172a">CP-SMS-MDM HitCount Reporter — How One Command Reaches the Management Web API</text>
   <text x="700" y="62" text-anchor="middle" font-size="15" fill="#475569">Four interchangeable clients, one API — same flags, same results. Pick the client that fits your environment.</text>
 
   <g font-size="14" font-weight="bold" fill="#94a3b8" letter-spacing="2" text-anchor="middle">
