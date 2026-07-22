@@ -48,6 +48,8 @@ def fake_web_api(server, port, command, payload, sid, ctx, timeout=120):
         return {}
     off = payload.get("offset", 0)
     domain = sid.split(":", 1)[1]
+    if domain == "MDS":   # domain-less login = standalone/SMS context
+        domain = ""
     if command == "show-domains":
         if sid != "sid:MDS":
             raise hc.ApiError("not in MDS context")
@@ -173,6 +175,23 @@ check("api_to_date adds one day", hc.api_to_date(datetime.date(2026, 7, 22))
 ctx = hc.make_ssl_context("10.0.0.1", False, False)
 check("remote TLS verification enforced by default",
       ctx.verify_mode == ssl.CERT_REQUIRED)
+
+# --- standalone SMS mode (show-domains returns nothing) ------------------------
+with open(os.path.join(HERE, "stubs", "fixtures-sms.json")) as f:
+    SMS = json.load(f)
+FIX.clear()
+FIX.update(SMS)
+c, recs = runj([])
+check("SMS mode: all rules reported, labeled (local)",
+      c == 0 and len(recs) == 4
+      and all(r["domain"] == "(local)" for r in recs),
+      str(recs))
+c, recs = runj(["--zero-only"])
+check("SMS mode: --zero-only finds the unused rule", c == 0
+      and [r["name"] for r in recs] == ["Block-Telnet"])
+c, out, _ = run([])
+check("SMS mode: footer counts one (local) domain",
+      "4 rules shown (1 zero-hit) across 1 domain(s)" in out, out)
 
 print()
 print("RESULT: %d passed, %d failed" % (PASS, FAIL))

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 hitcount_sdk.py - Report per-rule Access Policy HIT COUNTS across all Domains
-(CMAs) of a Multi-Domain Management server, using the official Check Point
-Management API Python SDK (cpapi).
+(CMAs) of a Multi-Domain Management server - or of a standalone Security
+Management Server (no domains -> the one local database, labeled "(local)") -
+using the official Check Point Management API Python SDK (cpapi).
 
 The remote-friendly variant: run it from your laptop/jump host. It shares its
 flattening, filtering and rendering logic with ../python/hitcount.py; only the

@@ -1,0 +1,23 @@
+{
+  "domains": [],
+  "layers": { "": ["Standard Network"] },
+  "rulebase": {
+    "Standard Network": [
+      { "type": "access-rule", "rule-number": 1, "name": "Allow-Web",
+        "action": { "name": "Accept" }, "enabled": true,
+        "hits": { "value": 500, "level": "medium",
+                  "last-date": { "iso-8601": "2026-07-20T10:00-0400" } } },
+      { "type": "access-rule", "rule-number": 2, "name": "Allow-DNS",
+        "action": { "name": "Accept" }, "enabled": true,
+        "hits": { "value": 60, "level": "low",
+                  "last-date": { "iso-8601": "2026-07-19T08:00-0400" } } },
+      { "type": "access-rule", "rule-number": 3, "name": "Block-Telnet",
+        "action": { "name": "Drop" }, "enabled": true,
+        "hits": { "value": 0, "level": "zero" } },
+      { "type": "access-rule", "rule-number": 4, "name": "Cleanup rule",
+        "action": { "name": "Drop" }, "enabled": true,
+        "hits": { "value": 8, "level": "low",
+                  "last-date": { "iso-8601": "2026-07-21T12:00-0400" } } }
+    ]
+  }
+}

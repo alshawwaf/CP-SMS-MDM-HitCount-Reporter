@@ -99,6 +99,8 @@ def main():
     p = pairs(pos[2:])
     off = int(p.get("offset", 0))
     domain = sid[len("sid-"):]
+    if domain == "MDS":   # domain-less login = standalone/SMS context
+        domain = ""
 
     if what == "domains":
         if sid != "sid-MDS":

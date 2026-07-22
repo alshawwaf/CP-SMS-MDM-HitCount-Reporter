@@ -127,6 +127,20 @@ t 1 "missing auth mode -> error"         -- "$C"
 t 0 "help exits 0"                       -- "$C" --help
 hasnt "help has no leaked code"             "set -uo pipefail"
 
+echo
+echo "=============== standalone SMS mode (show domains is empty) ==============="
+SMS_FIX="$TESTDIR/stubs/fixtures-sms.json"
+t 0 "SMS: mgmt_cli treats box as single server" -- env HITS_FIXTURES="$SMS_FIX" "$M" --local
+has  "fallback note printed"                "No domains found - treating as a single management server"
+has  "rows labeled (local)"                 "(local)"
+has  "footer counts one local domain"       "4 rules shown (1 zero-hit) across 1 domain(s)"
+t 0 "SMS: --zero-only finds the unused rule" -- env HITS_FIXTURES="$SMS_FIX" "$M" --local --zero-only
+has  "Block-Telnet listed"                  "Block-Telnet"
+has  "footer says 1"                        "1 rules shown (1 zero-hit)"
+t 0 "SMS: clish transport falls back too"   -- env HITS_FIXTURES="$SMS_FIX" MGMT_CLI_PASSWORD=secret "$C" --user admin
+has  "fallback note via clish"              "No domains found"
+has  "rows labeled (local) via clish"       "(local)"
+
 rm -f "$STUB_CAPTURE"
 echo
 echo "==================== RESULT: $PASS passed, $FAIL failed ===================="

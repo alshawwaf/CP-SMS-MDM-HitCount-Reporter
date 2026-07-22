@@ -3,6 +3,8 @@
 # hitcount_clish.sh - Report per-rule Access Policy HIT COUNTS across all
 #                     Domains (CMAs) of a Multi-Domain server, using Gaia
 #                     Clish management commands ("mgmt login" / "mgmt show").
+#                     Also works on a standalone Security Management server
+#                     (no domains -> the one local database, labeled "(local)").
 #
 # A clish 'mgmt' session does not survive the clish process, clish ignores
 # piped stdin, and the Management API scopes a session to ONE domain at login

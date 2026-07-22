@@ -1,17 +1,19 @@
-# MDM CMA HitCount Reporter
+# CP-SMS-MDM HitCount Reporter
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Check%20Point%20Gaia%20R81%2B-e6007e.svg)
 [![Python](https://img.shields.io/badge/python-3.x%20·%20stdlib%20only-3776AB.svg?logo=python&logoColor=white)](python/hitcount.py)
 [![Bash](https://img.shields.io/badge/bash-mgmt__cli%20·%20clish-4EAA25.svg?logo=gnubash&logoColor=white)](mgmt_cli/hitcount.sh)
 [![Official SDK](https://img.shields.io/badge/SDK-cp--mgmt--api--sdk-orange.svg)](https://github.com/CheckPointSW/cp_mgmt_api_python_sdk)
-[![Tests](https://img.shields.io/badge/offline%20tests-80%20checks-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/offline%20tests-93%20checks-brightgreen.svg)](tests/)
 
 **Report per-rule Access Policy hit counts across every Domain (CMA)** of a
-Check Point **Multi-Domain Management (MDM/MDS)** server — from a single
-command. The classic use case: `--zero-only` lists every rule that took **no
-hits** in the time window, i.e. your rulebase-cleanup candidates, across all
-domains at once.
+Check Point **Multi-Domain Management (MDM/MDS)** server — **or of a
+standalone Security Management Server (SMS)**, from a single command. The
+classic use case: `--zero-only` lists every rule that took **no hits** in the
+time window, i.e. your rulebase-cleanup candidates, across all domains at
+once. On a standalone server there's simply one database to sweep — the tools
+detect that automatically and label the results `(local)`.
 
 **Default time window: the last 6 months** (182 days) up to today. Override
 with `--from` / `--to`, and narrow the counters to one enforcing firewall with
@@ -99,7 +101,7 @@ version from your own laptop (section 4). They all print identical output.
 ```text
 laptop$ ssh admin@<MDM-IP>        # connect to the MDM (ask your admin for the IP)
 gw> expert                        # leave the restricted shell; type the expert password
-[Expert@mdm:0]# cd /home/admin/MDM-CMA-HitCount-Reporter    # wherever the tool was copied
+[Expert@mdm:0]# cd /home/admin/CP-SMS-MDM-HitCount-Reporter    # wherever the tool was copied
 [Expert@mdm:0]# ./mgmt_cli/hitcount.sh --zero-only
 ```
 
@@ -200,8 +202,9 @@ Other common first-run errors:
 
 ## Requirements
 
-- Check Point **R81 or later** MDS (R81 / R81.10 / R81.20 / R82 / R82.10 —
-  validated end to end on R82.10).
+- Check Point **R81 or later** — Multi-Domain (MDM/MDS) **or standalone
+  Security Management** (R81 / R81.10 / R81.20 / R82 / R82.10; validated end
+  to end on an R82.10 MDM, standalone mode covered by the offline test suite).
 - Management **API server running**: check with `api status` (expert mode).
 - Hit counters come from **enforcing firewalls**: the Hit Count feature must
   be enabled on the gateways (it is by default) and policy installed. A
@@ -228,10 +231,10 @@ Copy the tool over and prepare it:
 
 ```bash
 # on your workstation
-scp -r MDM-CMA-HitCount-Reporter admin@<MDS-IP>:/home/admin/
+scp -r CP-SMS-MDM-HitCount-Reporter admin@<MDS-IP>:/home/admin/
 
 # on the MDS (SSH now lands straight in expert mode)
-cd /home/admin/MDM-CMA-HitCount-Reporter
+cd /home/admin/CP-SMS-MDM-HitCount-Reporter
 chmod +x python/hitcount.py mgmt_cli/hitcount.sh clish/hitcount_clish.sh
 api status        # the API server must be started
 ```
@@ -715,8 +718,8 @@ the 6-month default window reaches the API**. Requirements: `bash`,
 `python3`, `jq`.
 
 ```bash
-tests/run_shell_tests.sh          # mgmt_cli + clish end-to-end (53 checks)
-python3 tests/test_hitcount.py    # Python version against a mocked API (27 checks)
+tests/run_shell_tests.sh          # mgmt_cli + clish end-to-end (63 checks)
+python3 tests/test_hitcount.py    # Python version against a mocked API (30 checks)
 ```
 
 Both print PASS/FAIL per scenario; exit code 0 means all green. The SDK

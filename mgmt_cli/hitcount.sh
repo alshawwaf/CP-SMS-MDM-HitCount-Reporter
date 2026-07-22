@@ -2,6 +2,8 @@
 # ============================================================================
 # hitcount.sh - Report per-rule Access Policy HIT COUNTS across all Domains
 #               (CMAs) of a Multi-Domain server, using the mgmt_cli tool.
+#               Also works on a standalone Security Management server: with no
+#               domains to enumerate it sweeps the one local database ("(local)").
 #
 # Run on the MDS in EXPERT mode. Default auth is login-as-root (no credentials).
 # For every domain: discover access layers, pull each rulebase with hit

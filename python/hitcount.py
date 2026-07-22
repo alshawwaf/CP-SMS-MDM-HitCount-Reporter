@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """
 hitcount.py - Report per-rule Access Policy HIT COUNTS across all Domains
-(CMAs) of a Check Point Multi-Domain Management (MDM/MDS) server.
+(CMAs) of a Check Point Multi-Domain Management (MDM/MDS) server, or of a
+standalone Security Management Server (no domains found -> the one local
+database is swept and results are labeled "(local)").
 
 For every domain it discovers the access layers, pulls the rulebase with hit
 counters (show-access-rulebase + show-hits), and prints one line per rule:
