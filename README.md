@@ -403,6 +403,55 @@ works even when restricted to clish, but custom low-privilege Gaia users
 cannot run `mgmt` commands at all (the platform limits the underlying
 binary; you'd see `MGMT9163 Cannot run login cmd`).
 
+<details>
+<summary><b>One-box version — everything in a single paste from your workstation</b></summary>
+
+Builds the command file, runs the report, prints the clean table, deletes the
+file. Fill in the four placeholders (and duplicate the three-line
+login/show/logout group per domain). You'll be prompted for your SSH
+password; the file briefly contains your management password, so the last
+line removes it:
+
+```bash
+PW='YOUR-MGMT-PASSWORD'
+cat > hitreport.txt <<EOF
+set clienv rows 0
+mgmt login user YOUR-ADMIN password "$PW" domain "CMA-EMEA"
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt logout
+mgmt login user YOUR-ADMIN password "$PW" domain "CMA-US"
+mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt logout
+exit
+EOF
+ssh -tt YOUR-GAIA-USER@MDM-IP < hitreport.txt | awk 'BEGIN{printf "%-10s %-30s %8s  %s\n","DOMAIN","RULE","HITS","LEVEL"} /name: "/{p=c; c=$0} /level: "/{l=$0} / value: /{gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c); gsub(/.*level: "|".*$/,"",l); printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
+rm hitreport.txt
+```
+
+The file above assumes your Gaia account lands directly in clish (the usual
+case this section is about). If your account lands in a bash/expert prompt
+instead, add `clish` as the file's first line and a second `exit` at the end.
+
+</details>
+
+<details>
+<summary><b>Already logged in at the clish prompt? The minimal paste</b></summary>
+
+This assumes you are already inside clish **and** already ran
+`mgmt login user <you> domain "<CMA>"` — you're just missing the query.
+Paste these two lines, then read the `hits:` block of each rule:
+
+```
+set clienv rows 0
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+```
+
+For the next domain: `mgmt logout`, log in to it, and paste the show line
+again with that domain's layer name. The output here is the raw (verbose)
+form — for the tidy table, use the one-box workstation version above.
+
+</details>
+
 **Reading the result:** every rule prints a block with its `name:`,
 `rule-number:`, `enabled:` and a `hits:` section:
 
