@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.x%20·%20stdlib%20only-3776AB.svg?logo=python&logoColor=white)](python/hitcount.py)
 [![Bash](https://img.shields.io/badge/bash-mgmt__cli%20·%20clish-4EAA25.svg?logo=gnubash&logoColor=white)](mgmt_cli/hitcount.sh)
 [![Official SDK](https://img.shields.io/badge/SDK-cp--mgmt--api--sdk-orange.svg)](https://github.com/CheckPointSW/cp_mgmt_api_python_sdk)
-[![Tests](https://img.shields.io/badge/offline%20tests-78%20checks-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/offline%20tests-80%20checks-brightgreen.svg)](tests/)
 
 **Report per-rule Access Policy hit counts across every Domain (CMA)** of a
 Check Point **Multi-Domain Management (MDM/MDS)** server — from a single
@@ -180,7 +180,8 @@ Other common first-run errors:
 
 ## Requirements
 
-- Check Point **R81 or later** MDS (R81 / R81.10 / R81.20 / R82).
+- Check Point **R81 or later** MDS (R81 / R81.10 / R81.20 / R82 / R82.10 —
+  validated end to end on R82.10).
 - Management **API server running**: check with `api status` (expert mode).
 - Hit counters come from **enforcing firewalls**: the Hit Count feature must
   be enabled on the gateways (it is by default) and policy installed. A
@@ -263,10 +264,12 @@ POST /web_api/login                    {"api-key": "...", "domain": "<CMA>"}
 POST /web_api/show-access-layers       {"details-level": "standard", "limit": 100, "offset": 0}
 POST /web_api/show-access-rulebase     {"name": "<layer>", "show-hits": true,
                                         "hits-settings": {"from-date": "2026-01-21",
-                                                          "to-date": "2026-07-22",
+                                                          "to-date": "2026-07-23",
                                                           "target": "<fw>"},
                                         "use-object-dictionary": false,
                                         "limit": 100, "offset": 0}
+# to-date is the user's end date + 1 day: the API treats it as the START of
+# that day, so +1 makes the window inclusive (display still shows 2026-07-22)
 POST /web_api/logout                   {}
 ```
 
@@ -293,12 +296,13 @@ and handed to `mgmt_cli` via the environment — never on a command line.
 <summary>API calls under the hood (mgmt_cli)</summary>
 
 ```bash
-mgmt_cli login -r true --format json                          # → sid, per domain
+mgmt_cli login -r true domain "<CMA>" --format json           # → sid, one per domain
 mgmt_cli show access-layers details-level standard limit 100 offset 0 --session-id <SID> --format json
 mgmt_cli show access-rulebase name "<layer>" show-hits true \
-    hits-settings.from-date "2026-01-21" hits-settings.to-date "2026-07-22" \
+    hits-settings.from-date "2026-01-21" hits-settings.to-date "2026-07-23" \
     use-object-dictionary false details-level standard limit 100 offset 0 \
     --session-id <SID> --format json
+# to-date = end date + 1 day (the API excludes the end date's own day)
 mgmt_cli logout --session-id <SID>
 ```
 
@@ -393,9 +397,10 @@ CMA-US     Allow-NTP                             0  zero
 ...one line per rule, every domain...
 ```
 
-Windows: `ssh -tt admin@<MDM-IP> "" < hitreport.txt > report.txt`, then open
+Windows (PowerShell — note it has no `<` redirection):
+`Get-Content hitreport.txt | ssh -tt admin@<MDM-IP> > report.txt`, then open
 `report.txt` in your editor and search for `value:` — or run the awk
-one-liner above from Git Bash or WSL.
+one-liner above unchanged from Git Bash or WSL.
 
 Two notes: `-tt` matters (clish ignores input without a terminal), and the
 account must be a **Gaia admin-class user** — the standard `admin` account
@@ -618,7 +623,7 @@ the 6-month default window reaches the API**. Requirements: `bash`,
 
 ```bash
 tests/run_shell_tests.sh          # mgmt_cli + clish end-to-end (53 checks)
-python3 tests/test_hitcount.py    # Python version against a mocked API (25 checks)
+python3 tests/test_hitcount.py    # Python version against a mocked API (27 checks)
 ```
 
 Both print PASS/FAIL per scenario; exit code 0 means all green. The SDK
