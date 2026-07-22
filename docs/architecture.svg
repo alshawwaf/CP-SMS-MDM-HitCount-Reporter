@@ -1,0 +1,181 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#64748b"/>
+    </marker>
+    <marker id="ahp" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#e6007e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1400" height="950" fill="#f8fafc"/>
+
+  <text x="700" y="38" text-anchor="middle" font-size="23" font-weight="bold" fill="#0f172a">MDM CMA HitCount Reporter — How One Command Reaches the Management Web API</text>
+  <text x="700" y="62" text-anchor="middle" font-size="15" fill="#475569">Four interchangeable clients, one API — same flags, same results. Pick the client that fits your environment.</text>
+
+  <g font-size="14" font-weight="bold" fill="#94a3b8" letter-spacing="2" text-anchor="middle">
+    <text x="28" y="104" transform="rotate(-90 28 104)">INPUT</text>
+    <text x="28" y="250" transform="rotate(-90 28 250)">CLIENTS</text>
+    <text x="28" y="412" transform="rotate(-90 28 412)">TRANSPORT</text>
+    <text x="28" y="638" transform="rotate(-90 28 638)">MANAGEMENT</text>
+    <text x="28" y="866" transform="rotate(-90 28 866)">ENFORCEMENT</text>
+  </g>
+
+  <rect x="430" y="76" width="540" height="56" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="700" y="97" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Admin types ONE command — any client below:</text>
+  <rect x="520" y="104" width="360" height="22" rx="5" fill="#0f172a"/>
+  <text x="700" y="120" text-anchor="middle" font-size="14" fill="#f8fafc">$ hitcount --zero-only --from 2026-01-01</text>
+
+  <rect x="1030" y="76" width="310" height="56" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <circle cx="1054" cy="96" r="11" fill="#e6007e"/>
+  <text x="1054" y="101" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">5</text>
+  <text x="1072" y="101" font-size="15" font-weight="bold" fill="#0f172a">Final output — table / JSON</text>
+  <text x="1072" y="121" font-size="14" fill="#64748b">flags applied client-side</text>
+
+  <g fill="none" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#ah)">
+    <path d="M490,132 C490,160 220,150 220,180"/>
+    <path d="M620,132 C620,155 520,152 520,180"/>
+    <path d="M780,132 C780,155 890,152 890,180"/>
+    <path d="M910,132 C910,160 1200,150 1200,180"/>
+  </g>
+
+  <rect x="60" y="186" width="610" height="128" rx="12" fill="#eef2f7" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="730" y="186" width="610" height="128" rx="12" fill="#eef2f7" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="365" y="209" text-anchor="middle" font-size="14" font-weight="bold" fill="#1d4ed8" letter-spacing="1">RUNS ON YOUR WORKSTATION (REMOTE)</text>
+  <text x="1035" y="209" text-anchor="middle" font-size="14" font-weight="bold" fill="#1d4ed8" letter-spacing="1">RUNS ON THE MDS (EXPERT MODE)</text>
+
+  <rect x="85" y="220" width="270" height="82" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="395" y="220" width="270" height="82" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="755" y="220" width="270" height="82" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="1065" y="220" width="270" height="82" rx="10" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <g text-anchor="middle">
+    <text x="220" y="254" font-size="15" font-weight="bold" fill="#0f172a">Official SDK (cpapi)</text>
+    <text x="220" y="278" font-size="14" fill="#64748b">Python + cpapi package</text>
+    <text x="530" y="254" font-size="15" font-weight="bold" fill="#0f172a">Python (stdlib)</text>
+    <text x="530" y="278" font-size="14" fill="#64748b">zero extra dependencies</text>
+    <text x="890" y="254" font-size="15" font-weight="bold" fill="#0f172a">mgmt_cli version</text>
+    <text x="890" y="278" font-size="14" fill="#64748b">bundled CLI binary</text>
+    <text x="1200" y="254" font-size="15" font-weight="bold" fill="#0f172a">Gaia Clish version</text>
+    <text x="1200" y="278" font-size="14" fill="#64748b">Gaia shell, batch mode</text>
+  </g>
+
+  <g fill="none" stroke="#64748b" stroke-width="2.2" marker-end="url(#ah)">
+    <line x1="220" y1="316" x2="220" y2="508"/>
+    <line x1="530" y1="316" x2="530" y2="508"/>
+    <line x1="890" y1="316" x2="890" y2="508"/>
+    <path d="M1200,316 C1200,410 970,430 955,506"/>
+  </g>
+
+  <rect x="75" y="360" width="290" height="80" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <rect x="385" y="360" width="290" height="80" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <rect x="745" y="360" width="290" height="80" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <rect x="1045" y="360" width="290" height="80" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+  <g text-anchor="middle" font-size="14">
+    <text x="220" y="386" font-weight="bold" fill="#0f172a">HTTPS + cert fingerprint pinning</text>
+    <text x="220" y="408" fill="#475569">cached read-only sessions:</text>
+    <text x="220" y="430" fill="#475569">~/.hitcount_sdk_sessions.json</text>
+    <text x="530" y="386" font-weight="bold" fill="#0f172a">HTTPS POST /web_api/&lt;command&gt;</text>
+    <text x="530" y="408" fill="#475569">session id in X-chkp-sid header</text>
+    <text x="530" y="430" fill="#475569">TLS verified by default</text>
+    <text x="890" y="386" font-weight="bold" fill="#0f172a">local binary → API server</text>
+    <text x="890" y="408" fill="#475569">login -r true, --session-id</text>
+    <text x="890" y="430" fill="#475569">(root login, no password prompt)</text>
+    <text x="1190" y="386" font-weight="bold" fill="#0f172a">batch file per call</text>
+    <text x="1190" y="408" fill="#475569">clish -i -f: login + show + logout</text>
+    <text x="1190" y="430" fill="#475569">no persistent session</text>
+  </g>
+
+  <rect x="60" y="515" width="920" height="247" rx="12" fill="#ffffff" stroke="#94a3b8" stroke-width="1.6"/>
+  <rect x="60" y="515" width="920" height="40" rx="12" fill="#e6007e"/>
+  <rect x="60" y="535" width="920" height="20" fill="#e6007e"/>
+  <text x="520" y="541" text-anchor="middle" font-size="15" font-weight="bold" fill="#ffffff">MDS (Multi-Domain Server) — API server :443 — the single front door for all four clients</text>
+
+  <g stroke="#64748b" stroke-width="2" marker-end="url(#ah)">
+    <line x1="177" y1="558" x2="177" y2="572"/>
+    <line x1="405" y1="558" x2="405" y2="572"/>
+    <line x1="635" y1="558" x2="635" y2="572"/>
+    <line x1="865" y1="558" x2="865" y2="572"/>
+  </g>
+
+  <rect x="85" y="580" width="185" height="155" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="177" y="608" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">System Data</text>
+  <text x="177" y="628" text-anchor="middle" font-size="14" fill="#64748b">(MDS context)</text>
+  <circle cx="108" cy="653" r="11" fill="#e6007e"/>
+  <text x="108" y="658" text-anchor="middle" font-size="14" font-weight="bold" fill="#ffffff">1</text>
+  <text x="126" y="658" font-size="14" fill="#334155">login here first</text>
+  <text x="126" y="684" font-size="14" fill="#334155">show-domains →</text>
+  <text x="126" y="704" font-size="14" fill="#334155">lists every CMA</text>
+
+  <g>
+    <rect x="300" y="580" width="210" height="155" rx="10" fill="#eff6ff" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="530" y="580" width="210" height="155" rx="10" fill="#eff6ff" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="760" y="580" width="210" height="155" rx="10" fill="#eff6ff" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="405" y="608" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">CMA-EMEA</text>
+    <text x="635" y="608" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">CMA-US</text>
+    <text x="865" y="608" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">CMA-APAC …</text>
+  </g>
+  <g font-size="14" fill="#334155">
+    <circle cx="328" cy="638" r="11" fill="#e6007e"/><text x="328" y="643" text-anchor="middle" font-weight="bold" fill="#ffffff">2</text>
+    <text x="344" y="643">own login · own sid</text>
+    <circle cx="328" cy="668" r="11" fill="#e6007e"/><text x="328" y="673" text-anchor="middle" font-weight="bold" fill="#ffffff">3</text>
+    <text x="344" y="673">show-access-layers</text>
+    <circle cx="328" cy="698" r="11" fill="#e6007e"/><text x="328" y="703" text-anchor="middle" font-weight="bold" fill="#ffffff">4</text>
+    <text x="344" y="703">rulebase + hits</text>
+    <circle cx="558" cy="638" r="11" fill="#e6007e"/><text x="558" y="643" text-anchor="middle" font-weight="bold" fill="#ffffff">2</text>
+    <text x="574" y="643">own login · own sid</text>
+    <circle cx="558" cy="668" r="11" fill="#e6007e"/><text x="558" y="673" text-anchor="middle" font-weight="bold" fill="#ffffff">3</text>
+    <text x="574" y="673">show-access-layers</text>
+    <circle cx="558" cy="698" r="11" fill="#e6007e"/><text x="558" y="703" text-anchor="middle" font-weight="bold" fill="#ffffff">4</text>
+    <text x="574" y="703">rulebase + hits</text>
+    <circle cx="788" cy="638" r="11" fill="#e6007e"/><text x="788" y="643" text-anchor="middle" font-weight="bold" fill="#ffffff">2</text>
+    <text x="804" y="643">own login · own sid</text>
+    <circle cx="788" cy="668" r="11" fill="#e6007e"/><text x="788" y="673" text-anchor="middle" font-weight="bold" fill="#ffffff">3</text>
+    <text x="804" y="673">show-access-layers</text>
+    <circle cx="788" cy="698" r="11" fill="#e6007e"/><text x="788" y="703" text-anchor="middle" font-weight="bold" fill="#ffffff">4</text>
+    <text x="804" y="703">rulebase + hits</text>
+  </g>
+
+  <rect x="995" y="468" width="345" height="324" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="1015" y="498" font-size="16" font-weight="bold" fill="#0f172a">One run, step by step</text>
+  <g font-size="14">
+    <circle cx="1018" cy="521" r="11" fill="#e6007e"/><text x="1018" y="526" text-anchor="middle" font-weight="bold" fill="#ffffff">1</text>
+    <text x="1036" y="526" fill="#0f172a">login → System Data · show-domains</text>
+    <circle cx="1018" cy="551" r="11" fill="#e6007e"/><text x="1018" y="556" text-anchor="middle" font-weight="bold" fill="#ffffff">2</text>
+    <text x="1036" y="556" fill="#0f172a">login to EACH CMA separately —</text>
+    <text x="1036" y="576" fill="#475569">new sid, scoped to that domain</text>
+    <circle cx="1018" cy="601" r="11" fill="#e6007e"/><text x="1018" y="606" text-anchor="middle" font-weight="bold" fill="#ffffff">3</text>
+    <text x="1036" y="606" fill="#0f172a">show-access-layers</text>
+    <text x="1036" y="626" fill="#475569">container key: "access-layers"</text>
+    <circle cx="1018" cy="651" r="11" fill="#e6007e"/><text x="1018" y="656" text-anchor="middle" font-weight="bold" fill="#ffffff">4</text>
+    <text x="1036" y="656" fill="#0f172a">show-access-rulebase</text>
+    <text x="1036" y="676" fill="#475569">+ show-hits: true + hits-settings</text>
+    <text x="1036" y="696" fill="#475569">{from-date, to-date, target}</text>
+    <text x="1036" y="716" fill="#475569">paginated, sections flattened</text>
+    <circle cx="1018" cy="741" r="11" fill="#e6007e"/><text x="1018" y="746" text-anchor="middle" font-weight="bold" fill="#ffffff">5</text>
+    <text x="1036" y="746" fill="#0f172a">client-side filters: --zero-only,</text>
+    <text x="1036" y="766" fill="#475569">--min-hits, --top → table / JSON</text>
+  </g>
+
+  <g stroke="#e6007e" stroke-width="2.2" stroke-dasharray="7 5" fill="none" marker-end="url(#ahp)">
+    <line x1="405" y1="818" x2="405" y2="742"/>
+    <line x1="635" y1="818" x2="635" y2="742"/>
+    <line x1="865" y1="818" x2="865" y2="742"/>
+  </g>
+  <text x="520" y="791" text-anchor="middle" font-size="14" font-weight="bold" fill="#e6007e">hit counters sync</text>
+  <text x="750" y="791" text-anchor="middle" font-size="14" font-weight="bold" fill="#e6007e">hit counters sync</text>
+
+  <rect x="60" y="806" width="920" height="119" rx="12" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="320" y="820" width="170" height="56" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="550" y="820" width="170" height="56" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="780" y="820" width="170" height="56" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+  <g text-anchor="middle">
+    <text x="405" y="843" font-size="15" font-weight="bold" fill="#0f172a">cl-paris</text>
+    <text x="405" y="864" font-size="14" fill="#64748b">cluster (EMEA)</text>
+    <text x="635" y="843" font-size="15" font-weight="bold" fill="#0f172a">fw-dallas</text>
+    <text x="635" y="864" font-size="14" fill="#64748b">firewall (US)</text>
+    <text x="865" y="843" font-size="15" font-weight="bold" fill="#0f172a">fw-tokyo …</text>
+    <text x="865" y="864" font-size="14" fill="#64748b">firewalls (APAC)</text>
+  </g>
+  <text x="520" y="898" text-anchor="middle" font-size="15" font-weight="bold" fill="#0f172a">Enforcing firewalls &amp; clusters — hit counters are recorded here as traffic matches rules</text>
+  <text x="520" y="918" text-anchor="middle" font-size="14" font-style="italic" fill="#475569">Note — no enforcing firewall in a domain → every rule reports 0 hits</text>
+</svg>

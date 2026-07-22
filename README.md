@@ -35,6 +35,13 @@ discover its access layers (`show-access-layers`), and pull each rulebase
 with hit counters (`show-access-rulebase` + `show-hits`), flattening rules
 out of their sections.
 
+## How it works
+
+![Architecture: how one command travels through the four clients into the Management Web API and every CMA](docs/architecture.svg)
+
+Prefer a file you can print or attach? The same diagram is available as
+[PDF](docs/architecture.pdf).
+
 ---
 
 ## Requirements
