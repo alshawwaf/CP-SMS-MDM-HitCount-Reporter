@@ -347,33 +347,30 @@ The `name:` lines are your domains (e.g. `CMA-EMEA`, `CMA-US`). The first
 line disables clish's output pager — without it, long output freezes the
 session waiting for a keypress.
 
-**Paste 2 — which policy layers exist in each domain?** Duplicate this
-three-line block once per domain from Paste 1:
+**Paste 2 — the hit report.** One login per domain (that's the architectural
+minimum: every domain is an isolated management server, so a session covers
+exactly one of them) — but everything for that domain happens inside the same
+session: list its layers, then pull each layer's rulebase with hits.
+Duplicate the block per domain from Paste 1. Set the dates to your window —
+and write **tomorrow's date** as the end date, because the API excludes the
+end date's own day (the scripts in this repo handle that automatically; by
+hand you must):
 
 ```
 mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
 mgmt show access-layers limit 100
-mgmt logout
-mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-US"
-mgmt show access-layers limit 100
-mgmt logout
-```
-
-Note each layer's `name:` (typically `"<package> Network"`).
-
-**Paste 3 — the hit report.** Duplicate per domain, filling in its layer
-name. Set the dates to your window — and write **tomorrow's date** as the
-end date, because the API excludes the end date's own day (the scripts in
-this repo handle that automatically; by hand you must):
-
-```
-mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
 mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
 mgmt logout
 mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-US"
+mgmt show access-layers limit 100
 mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
 mgmt logout
 ```
+
+First run and don't know the layer names yet? Run the block with just the
+`access-layers` line, read the layer names from the output (typically
+`"<package> Network"`), add the `access-rulebase` lines, and paste again —
+after that, this one paste is your whole recurring report.
 
 **Reading the result:** every rule prints a block with its `name:`,
 `rule-number:`, `enabled:` and a `hits:` section:
