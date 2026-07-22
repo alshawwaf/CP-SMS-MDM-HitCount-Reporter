@@ -44,6 +44,140 @@ Prefer a file you can print or attach? The same diagram is available as
 
 ---
 
+## New to Check Point? Start here
+
+If terms like MDM, CMA, or "the API" are new to you, read this once — then
+every command below will make sense.
+
+**The words this tool uses**
+
+| Term | Plain-English meaning |
+|------|----------------------|
+| **Firewall / gateway** | The Check Point device that inspects traffic and enforces your security rules. |
+| **Security Management Server** | The server where admins *write* the rules and push ("install") them to firewalls. Firewalls don't hold the master policy — management does. |
+| **MDM / MDS** (Multi-Domain Management) | One big management server that hosts **many separate managements inside it** — one per customer, site, or region. |
+| **Domain / CMA** | *One* of those inner managements (CMA = "Customer Management Add-on", the legacy name — both are used). Each has its own firewalls, objects, and rules, e.g. `CMA-EMEA`. |
+| **System Data** | The MDM's top level, which knows the *list* of CMAs but not their contents. The tool logs in there first, just to ask "what CMAs exist?" |
+| **Access Policy / rulebase** | The ordered list of allow/deny rules. Each row is a **rule**; traffic is checked top-down and the first matching rule wins. |
+| **Hit count** | How many times traffic matched a rule in a time window. **Zero hits = probably unused** — the cleanup candidates this tool hunts. |
+| **The Management API** | A way to ask the management server questions with commands instead of clicking in the GUI. This tool only ever *reads* — it never changes your configuration. |
+| **Expert mode** | The full Linux shell on a Check Point machine (a normal `bash` prompt). Type `expert` + the expert password after SSH-ing in. The restricted shell you land in first is called **clish**. |
+| **SmartConsole** | The Windows GUI admins normally use. **Not needed** for this tool. |
+
+**Why the tool logs in several times:** a management session is tied to **one
+CMA at a time**, so the tool logs in to System Data (to list the CMAs), then
+to each CMA in turn to read its rules. That's normal — it's the loop in the
+diagram above.
+
+**Which version should I pick?** For the fastest start use **mgmt_cli** while
+logged into the MDM (section 2 — no credentials needed there), or the **SDK**
+version from your own laptop (section 4). They all print identical output.
+
+<details>
+<summary><b>Your first run — every keystroke explained</b></summary>
+
+```text
+laptop$ ssh admin@<MDM-IP>        # connect to the MDM (ask your admin for the IP)
+gw> expert                        # leave the restricted shell; type the expert password
+[Expert@mdm:0]# cd /home/admin/MDM-CMA-HitCount-Reporter    # wherever the tool was copied
+[Expert@mdm:0]# ./mgmt_cli/hitcount.sh --zero-only
+```
+
+- `./` means "run the script that's in this folder". If you get
+  `Permission denied`, run `chmod +x mgmt_cli/hitcount.sh` once — that marks
+  the file as executable.
+- **No username or password is needed on the MDM itself** — in expert mode
+  you're root, and the tool uses Check Point's login-as-root mechanism.
+- `--zero-only` shows only rules with zero hits. Drop it to see every rule;
+  add `--domain CMA-EMEA` to look at one domain only.
+- The first full run takes a while: the tool is visiting every domain and
+  every policy layer, page by page. `--domain`/`--layer` narrow it down.
+
+</details>
+
+<details>
+<summary><b>Understanding the output, column by column</b></summary>
+
+```text
+DOMAIN(CMA)  LAYER                NO  RULE            ACTION  HITS  LEVEL   LAST HIT
+CMA-US       Standard_US Network  5   Allow-Ping      Accept  345   medium  2026-07-22
+```
+
+- **DOMAIN(CMA)** — which domain the rule lives in.
+- **LAYER** — the policy layer, same name you'd see in SmartConsole.
+- **NO** — the rule number, exactly as SmartConsole numbers it.
+- **RULE** — the rule's name; `(disabled)` is appended when a rule is off.
+- **ACTION** — Accept / Drop / etc. Note that **drops count as hits too** —
+  a hit means "traffic matched this rule", not "traffic was allowed".
+- **HITS** — matches inside your time window (default: the last 6 months).
+- **LEVEL** — Check Point's own scale: zero / low / medium / high / very high.
+- **LAST HIT** — the most recent day the rule matched ("-" = never).
+- Footer: `10 rules shown (2 zero-hit) across 1 domain(s) | window: …`
+
+Exit codes (for scripting): `0` = rules reported · `2` = nothing matched
+your filters · `1` = error.
+
+</details>
+
+<details>
+<summary><b>How do I get an API key? (only needed for remote runs)</b></summary>
+
+On the MDM itself, no credentials are needed. To run **remotely** (SDK or
+Python version from your laptop) you need an administrator with an API key.
+One-time setup — in SmartConsole: *Manage & Settings → Permissions &
+Administrators → New Administrator → Authentication method: API key →
+Generate*. Or entirely from the MDM command line (expert mode):
+
+```bash
+SID=$(mgmt_cli login -r true --format json | $CPDIR/jq/jq -r .sid)
+mgmt_cli add administrator name "api-tools" authentication-method "api key" \
+    multi-domain-profile "multi-domain super user" --session-id "$SID" --format json
+mgmt_cli add api-key admin-name "api-tools" --session-id "$SID" --format json   # copy the "api-key" value shown
+mgmt_cli publish --session-id "$SID" --format json
+mgmt_cli logout --session-id "$SID"
+```
+
+Then allow API calls from your machine (one-time): SmartConsole → *Manage &
+Settings → Blades → Management API → Advanced Settings*, or on the MDM:
+`mgmt_cli -r true set api-settings accepted-api-calls-from "all ip addresses"`
+followed by `api restart`. Treat the API key like a password.
+
+</details>
+
+<details>
+<summary><b>Seeing 0 hits where you expected numbers? Read this first</b></summary>
+
+Hit counters are **recorded on the firewalls** as traffic flows and **synced
+to management on a schedule** — so a zero can mean several different things:
+
+1. **No enforcing firewall in that domain** → every rule truthfully shows 0.
+2. **Counters haven't synced yet** — firewalls flush hit data to management
+   roughly every 3 hours. Installing policy triggers a faster sync within a
+   few minutes of the install.
+3. **Your window excludes the traffic** — check `--from`/`--to`. (The end
+   date is inclusive: `--to 2026-07-22` includes all of July 22.)
+4. **Comparing against SmartConsole?** Its *Hits* column caches aggressively;
+   right-click → Refresh is often not enough — **close and reopen the policy
+   tab (or SmartConsole itself)** to see current numbers. This tool reads the
+   live store directly, so it can legitimately show hits *before* an open
+   SmartConsole window does.
+5. **Admin permissions** — an administrator without rights on a domain can't
+   see its rules at all; use a Multi-Domain-level administrator.
+
+Other common first-run errors:
+
+| Error | Fix |
+|-------|-----|
+| `Permission denied` when running a script | `chmod +x <script>` once |
+| `ERROR: login to management failed` | On the MDM: check `api status`. Remotely: pass `--api-key`/`--user`, and make sure remote API access is enabled (see the API-key box) |
+| `jq not found` | The two `.sh` versions need `jq` — bundled on Gaia, found automatically. On other machines use the Python or SDK version |
+| `too many requests` | The server rate-limits login bursts; wait ~1 minute (the SDK version backs off and retries by itself) |
+| Certificate fingerprint question (SDK, first run) | Verify and accept — it's stored for next time. In a lab, `--unsafe-auto-accept` skips the prompt |
+
+</details>
+
+---
+
 ## Requirements
 
 - Check Point **R81 or later** MDS (R81 / R81.10 / R81.20 / R82).
