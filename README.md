@@ -399,16 +399,19 @@ Duplicate the block per domain from Paste 1, and set the dates to your window.
 > date's own day. (The scripts in this repository correct this for you
 > automatically; when querying by hand you must do it yourself.)
 
-```
+```text
 mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-EMEA"
 mgmt show access-layers limit 100
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 mgmt logout
 mgmt login user YOUR-ADMIN password "YOUR-PASSWORD" domain "CMA-US"
 mgmt show access-layers limit 100
-mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 mgmt logout
 ```
+
+(Clish has no line continuation — each `mgmt` command must stay on a single
+line, even if it scrolls a little here.)
 
 First run and don't know the layer names yet? Run the block with just the
 `access-layers` line, read the layer names from the output (typically
@@ -424,7 +427,12 @@ the last — e.g. `hitreport.txt`, then run it over SSH and filter locally.
 macOS / Linux:
 
 ```bash
-ssh -tt admin@<MDM-IP> < hitreport.txt | awk '/name: "/{p=c; c=$0} /level: "/{l=$0} / value: /{gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c); gsub(/.*level: "|".*$/,"",l); printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
+ssh -tt admin@<MDM-IP> < hitreport.txt | awk '
+  /name: "/  {p=c; c=$0}
+  /level: "/ {l=$0}
+  / value: / {gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c);
+              gsub(/.*level: "|".*$/,"",l);
+              printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
 ```
 
 which prints (verified against a live R82.10 Multi-Domain server):
@@ -462,14 +470,20 @@ PW='YOUR-MGMT-PASSWORD'
 cat > hitreport.txt <<EOF
 set clienv rows 0
 mgmt login user YOUR-ADMIN password "$PW" domain "CMA-EMEA"
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 mgmt logout
 mgmt login user YOUR-ADMIN password "$PW" domain "CMA-US"
-mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt show access-rulebase name "Standard_US Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 mgmt logout
 exit
 EOF
-ssh -tt YOUR-GAIA-USER@MDM-IP < hitreport.txt | awk 'BEGIN{printf "%-10s %-30s %8s  %s\n","DOMAIN","RULE","HITS","LEVEL"} /name: "/{p=c; c=$0} /level: "/{l=$0} / value: /{gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c); gsub(/.*level: "|".*$/,"",l); printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
+ssh -tt YOUR-GAIA-USER@MDM-IP < hitreport.txt | awk '
+  BEGIN      {printf "%-10s %-30s %8s  %s\n","DOMAIN","RULE","HITS","LEVEL"}
+  /name: "/  {p=c; c=$0}
+  /level: "/ {l=$0}
+  / value: / {gsub(/.*name: "|".*$/,"",p); gsub(/.*name: "|".*$/,"",c);
+              gsub(/.*level: "|".*$/,"",l);
+              printf "%-10s %-30s %8s  %s\n", c, p, $NF, l}'
 rm hitreport.txt
 ```
 
@@ -486,9 +500,9 @@ This assumes you are already inside clish **and** already ran
 `mgmt login user <you> domain "<CMA>"` — you're just missing the query.
 Paste these two lines, then read the `hits:` block of each rule:
 
-```
+```text
 set clienv rows 0
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 ```
 
 For the next domain: `mgmt logout`, log in to it, and paste the show line
@@ -521,15 +535,15 @@ discards everything pasted after it** — so in this mode you must paste in
 two stages per domain: first the login line alone, type the password, then
 paste the query lines once the prompt returns:
 
-```
+```text
 set clienv rows 0
 mgmt login user YOUR-ADMIN domain "CMA-EMEA"
 ```
 
 *(type your password, wait for the prompt)*
 
-```
-mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" details-level standard limit 100 offset 0
+```text
+mgmt show access-rulebase name "Standard_EMEA Network" show-hits true hits-settings.from-date "2026-01-23" hits-settings.to-date "2026-07-23" limit 100
 mgmt logout
 ```
 
